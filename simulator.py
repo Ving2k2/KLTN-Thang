@@ -39,7 +39,7 @@ networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yam
 env, net = networkIO.makeNetwork()
 with open("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml", 'r') as file:
     mc_argc = yaml.safe_load(file)
-mcs = [MobileCharger(copy.deepcopy(net.baseStation.location), mc_phy_spe=mc_argc) for _ in range(1)]
+mcs = [MobileCharger(copy.deepcopy(net.baseStation.location), mc_phy_spe=mc_argc) for _ in range(3)]
 print(mc for mc in mcs)
 for id, mc in enumerate(mcs):
     mc.env = env

@@ -113,7 +113,7 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
             if other_mc.id != mc.id and other_mc.cur_action_type == "charging":
                 d = distance.euclidean(other_mc.location, node.location)
                 p1 += (para.alpha / (d + para.beta) ** 2) * (other_mc.end_time - time_stem) #endtime wrong in this code
-            elif other_mc.id != mc.id and other_mc.cur_action_type() == "moving" and other_mc.state != len(
+            elif other_mc.id != mc.id and other_mc.cur_action_type == "moving" and other_mc.state != len(
                     q_learning.q_table) - 1:
                 d = distance.euclidean(other_mc.end, node.location)
                 p1 += (para.alpha / (d + para.beta) ** 2) * (other_mc.end_time - other_mc.arrival_time)
