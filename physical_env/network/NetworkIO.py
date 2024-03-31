@@ -24,8 +24,11 @@ class NetworkIO:
         random.seed(self.seed)
         listNodes = []
         listTargets = []
-        for tmp in net_argc["nodes"]:
-            listNodes.append(Node(location=tmp, phy_spe=copy.deepcopy(self.node_phy_spe)))
+        listEnergys = []
+        for tmp in self.net_argc["energy_avg"]:
+            listEnergys.append(tmp)
+        for id, tmp in enumerate(net_argc["nodes"]):
+            listNodes.append(Node(location=tmp, phy_spe=copy.deepcopy(self.node_phy_spe), energy_per_second=listEnergys[id]))
         for tmp in self.net_argc["targets"]:
             listTargets.append(Target(location=tmp))
 

@@ -20,7 +20,7 @@ class WRSN:
 
 random.seed(0)
 
-netIO = NetworkIO("physical_env/network/network_scenarios/hanoi1000n100.yaml")
+netIO = NetworkIO("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\network\\network_scenarios\\hanoi1000n50.yaml")
 env, net = netIO.makeNetwork()
 
 node_x = [node.location[0] for node in net.listNodes]

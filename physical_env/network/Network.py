@@ -1,7 +1,9 @@
 import copy
 import numpy as np
+import optimizer
+from optimizer.utils import network_clustering
 class Network:
-    def __init__(self, env, listNodes, baseStation, listTargets, max_time):
+    def __init__(self, env, listNodes, baseStation, listTargets, mc_list = None, max_time = None):
         self.env = env
         self.listNodes = listNodes
         self.baseStation = baseStation
@@ -12,13 +14,14 @@ class Network:
         baseStation.env = self.env
         baseStation.net = self
         self.max_time = max_time
+        self.mc_list = mc_list
 
         self.frame = np.array([self.baseStation.location[0], self.baseStation.location[0], self.baseStation.location[1], self.baseStation.location[1]], np.float64)
         it = 0
         for node in self.listNodes:
+            node.id = it
             node.env = self.env
             node.net = self
-            node.id = it
             it += 1
             self.frame[0] = min(self.frame[0], node.location[0])
             self.frame[1] = max(self.frame[1], node.location[0])
@@ -66,8 +69,8 @@ class Network:
         return
 
 
-    def operate(self, t=1):
-        
+    def operate(self, t=1, optimizer=None):
+        request_id = []
         for node in self.listNodes:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
@@ -76,8 +79,26 @@ class Network:
             self.setLevels()
             self.alive = self.check_targets()
             yield self.env.timeout(9.0 * t / 10.0)
-            if self.alive == 0 or self.env.now >= self.max_time:
-                break         
+            # optimizer.action_list = network_clustering(optimizer=optimizer, network=self, nb_cluster=83)
+            for index, node in enumerate(self.listNodes):
+                if node.energy <= node.threshold:
+                    node.request(optimizer = optimizer, t=t)
+                    # print(optimizer.list_request)
+                    request_id.append(index)
+                else:
+                    node.is_request = False
+
+            # if (request_id):
+            #     print(len(request_id))
+            #     print(request_id)
+            # for request in optimizer.list_request:
+            #     print(request)
+            if optimizer and self.alive:
+                for mc in self.mc_list:
+                    self.env.process(mc.operate_step(net=self, optimizer=optimizer, time_stem=t))
+            # if self.alive == 0 or self.env.now >= self.max_time:
+            if self.alive == 0:
+                break
         return
 
     # If any target dies, value is set to 0
@@ -90,3 +111,18 @@ class Network:
             if node.status == 0:
                 tmp += 1
         return tmp
+
+    def avg_network(self):
+        sum = 0
+        for node in self.listNodes:
+            sum += node.energy
+        return sum / len(self.listNodes)
+
+    def min_node(self):
+        id_node_min = -1
+        min_energy = 1000000000
+        for id, node in enumerate(self.listNodes):
+            if node.energy < min_energy:
+                min_energy = node.energy
+                id_node_min = id
+        return id_node_min, min_energy

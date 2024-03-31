@@ -17,8 +17,8 @@ def log(net, mcs):
             print(net.env.now)
         yield net.env.timeout(1.0)
 
-network = WRSN(scenario_path="physical_env/network/network_scenarios/hanoi1000n50.yaml"
-               ,agent_type_path="physical_env/mc/mc_types/default.yaml"
+network = WRSN(scenario_path="C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\network\\network_scenarios\\hanoi1000n50.yaml"
+               ,agent_type_path="C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml"
                ,num_agent=3, map_size=100,density_map=True)
 controller = RandomController()
 

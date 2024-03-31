@@ -14,8 +14,8 @@ class BaseStation:
         self.net = None
 
         self.location = np.array(location)
-        self.monitored_target = []
-        self.direct_nodes = []
+        self.monitored_target = [] # mục tiêu đc giám sát
+        self.direct_nodes = [] # node trực tiếp
 
     def probe_neighbors(self):
         for node in self.net.listNodes:
