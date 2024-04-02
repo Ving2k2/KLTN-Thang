@@ -6,8 +6,8 @@ from physical_env.network import Node
 
 
 class Q_learningv2:
-    def __init__(self, init_func=init_function, nb_action=82, alpha=0, q_alpha=0.5, q_gamma=0.5, load_checkpoint=False, net=None):
-        self.action_list = self.net_partition(net=net)
+    def __init__(self, init_func=init_function, nb_action=30, alpha=0, q_alpha=0.5, q_gamma=0.5, load_checkpoint=False, net=None):
+        self.action_list = np.zeros(nb_action + 1)
         self.nb_action = nb_action
         self.q_table = init_func(nb_action=nb_action)
         # self.state = nb_action
@@ -60,7 +60,7 @@ class Q_learningv2:
 
     def choose_next_state(self, mc, network):
         # next_state = np.argmax(self.q_table[mc.state])
-        if mc.energy < 10:
+        if mc.energy < 540: #10
             mc.state = len(self.q_table) - 1
             print('[Optimizer] MC #{} energy is running low ({:.2f}), and needs to rest!'.format(mc.id, mc.energy))
         else:

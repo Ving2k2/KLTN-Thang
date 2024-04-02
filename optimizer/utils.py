@@ -38,7 +38,7 @@ def reward_function(network, mc, q_learning, state, time_stem):
     return first, second, third, charging_time
 
 
-def init_function(nb_action=82):
+def init_function(nb_action=30):
     return np.zeros((nb_action + 1, nb_action + 1), dtype=float)
 
 def get_weight(net, mc, q_learning, action_id, charging_time):
@@ -101,6 +101,7 @@ def get_charge_per_sec(net, q_learning, state):
 
 def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state=None, alpha=0.1):
     # request_id = [request["id"] for request in network.mc.list_request]
+    # print("state ne", state, "value_action_list", q_learning.action_list[state])
     time_move = distance.euclidean(mc.location, q_learning.action_list[state]) / mc.velocity
     energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
     s1 = []  # list of node in request list which has positive charge
@@ -148,7 +149,7 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
         return t[arg_min]
     return 0
 
-def network_clustering(optimizer, network=None, nb_cluster=81):
+def network_clustering(optimizer, network=None):
     nodes = network.listNodes
     location_nodes = []
     radius_nodes = []
@@ -181,17 +182,17 @@ def network_clustering(optimizer, network=None, nb_cluster=81):
             charging_pos.append((location_nodes[centers[0]][0], location_nodes[centers[0]][1]))
         all_intersections.append(intersections)
 
-    charging_pos_each_node = []
-    for index, cluster in enumerate(arr_name_nodes):
-        for i in range(len(nodes)):
-            for node_id in cluster:
-                if node_id == i:
-                    charging_pos_each_node.append(charging_pos[index])
+    # charging_pos_each_node = []
+    # for index, cluster in enumerate(arr_name_nodes):
+    #     for i in range(len(nodes)):
+    #         for node_id in cluster:
+    #             if node_id == i:
+    #                 charging_pos_each_node.append(charging_pos[index])
 
-    charging_pos_each_node.append(network.baseStation.location)
+    charging_pos.append(network.baseStation.location)
     # name_fig = "./fig/{}.png".format("charging_pos")
     # plt.savefig(name_fig)
-    return charging_pos_each_node
+    return charging_pos
         # arr_charge_pos.append(para.depot)
         # # print(charging_pos, file=open('log/centroid.txt', 'w'))
         # node_distribution_plot(network=network, charging_pos=arr_charge_pos)

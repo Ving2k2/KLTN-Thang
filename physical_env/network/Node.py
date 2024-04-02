@@ -173,6 +173,7 @@ class Node:
         tmp = mc.alpha / (euclidean(self.location, mc.location) + mc.beta) ** 2
         self.energyRR += tmp
         mc.chargingRate += tmp
+        print("charging_energy ", mc.chargingRate)
 
     def charger_disconnection(self, mc):
         if self.status == 0:

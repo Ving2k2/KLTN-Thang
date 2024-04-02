@@ -2,6 +2,7 @@ import copy
 import numpy as np
 import optimizer
 from optimizer.utils import network_clustering
+from physical_env.network.utils import network_clustering
 class Network:
     def __init__(self, env, listNodes, baseStation, listTargets, mc_list = None, max_time = None):
         self.env = env
@@ -15,6 +16,7 @@ class Network:
         baseStation.net = self
         self.max_time = max_time
         self.mc_list = mc_list
+        self.network_cluster = []
 
         self.frame = np.array([self.baseStation.location[0], self.baseStation.location[0], self.baseStation.location[1], self.baseStation.location[1]], np.float64)
         it = 0
@@ -74,10 +76,15 @@ class Network:
         for node in self.listNodes:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
+
         while True:
             yield self.env.timeout(t / 10.0)
             self.setLevels()
             self.alive = self.check_targets()
+            yield self.env.timeout(10)
+            if not self.network_cluster:
+                self.network_cluster = network_clustering(network=self)
+                optimizer.action_list = self.network_cluster
             yield self.env.timeout(9.0 * t / 10.0)
             # optimizer.action_list = network_clustering(optimizer=optimizer, network=self, nb_cluster=83)
             for index, node in enumerate(self.listNodes):
@@ -95,7 +102,7 @@ class Network:
             #     print(request)
             if optimizer and self.alive:
                 for mc in self.mc_list:
-                    self.env.process(mc.operate_step(net=self, optimizer=optimizer, time_stem=t))
+                    self.env.process(mc.operate_step_v3(net=self, optimizer=optimizer, time_stem=t))
             # if self.alive == 0 or self.env.now >= self.max_time:
             if self.alive == 0:
                 break
@@ -125,4 +132,4 @@ class Network:
             if node.energy < min_energy:
                 min_energy = node.energy
                 id_node_min = id
-        return id_node_min, min_energy
+        return id_node_min
