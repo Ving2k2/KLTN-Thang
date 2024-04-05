@@ -9,7 +9,7 @@ from shapely.geometry import Polygon, Point
 
 from physical_env.network.NetworkIO import NetworkIO
 from physical_env.network.Network import Network
-from optimizer.utils import find_set_of_interecting_circles, remove_arr_of_set, remove_common_elements2
+from physical_env.network.utils import find_set_of_interecting_circles, remove_arr_of_set, remove_common_elements2
 
 time_start = datetime.now().timestamp()
 time = 0

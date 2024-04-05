@@ -13,6 +13,7 @@ class MobileCharger:
         :param env: the time management system of this MC
         :param location: the initial coordinate of this MC, usually at the base station
         """
+        self.chargingTime = 0
         self.env = None
         self.net = None
         self.id = None
@@ -36,12 +37,16 @@ class MobileCharger:
         self.incentive = 0
         self.end_time = 0
         self.end = (0,0)
-        self.arrival_time = -1
+        self.arrival_time = 0
         self.start = self.location
-        self.state = 0
+        self.state = -2
         self.is_self_charge = False
         self.moving_time = 0
-
+        self.is_active = False
+        self.q_table = []
+        self.next_phy_action = [500, 500, 0]
+        self.save_state = []
+        self.e = mc_phy_spe['e']
     def charge_step(self, t):
         """
         The charging process to nodes in 'nodes' within simulateTime
@@ -51,7 +56,7 @@ class MobileCharger:
         for node in self.connected_nodes:
             node.charger_connection(self)
 
-        print("MC " + str(self.id) + " " + str(self.energy) + " Charging", self.location, self.energy, self.chargingRate)
+        # print("MC " + str(self.id) + " " + str(self.energy) + " Charging", self.location, self.energy, self.chargingRate)
         yield self.env.timeout(t)
         self.energy = self.energy - self.chargingRate * t
         self.cur_phy_action[2] = max(0, self.cur_phy_action[2] - t)
@@ -103,14 +108,10 @@ class MobileCharger:
                 break
             moving_time = euclidean(destination, self.location) / self.velocity
             # print("MC " + str(self.id) + " " + str(self.energy) + " Moving from", self.location, "to", destination)
-            # span = min(min(moving_time, 1.0), (self.energy - self.threshold) / (self.pm * self.velocity))
-            span = 1
+            span = min(min(moving_time, 1.0), (self.energy - self.threshold) / (self.pm * self.velocity))
+            # span = 1
             yield self.env.process(self.move_step(moving_vector / total_moving_time * span, t=span))
             moving_time -= span
-            if euclidean(self.location, destination) < 0.01:
-                self.cur_action_type = "charging"
-            elif euclidean(self.net.baseStation.location, self.location) < 0.01:
-                self.cur_action_type = "recharging"
             self.checkStatus()
         # print("energy after moving", self.energy)
         return self.arrival_time, self.end_time
@@ -122,14 +123,23 @@ class MobileCharger:
 
 
     def recharge(self):
+        print("energy of charger is low, need to come back base station and re-charge")
         if euclidean(self.location, self.net.baseStation.location) <= self.epsilon:
             self.location = copy.deepcopy(self.net.baseStation.location)
             self.energy = self.capacity
         self.is_self_charge = True
         yield self.env.timeout(0)
 
+    def update_q_table(self, optimizer, net, time_stem):
+        result = optimizer.update_v2(self, net, time_stem)
+        self.q_table = result[1]
+        self.next_phy_action = []
+        self.next_phy_action = [result[2][0], result[2][1], result[3]]
+        return result[0]
+
     def operate_step_v4(self, phy_action):
-        #print("MC " + str(self.id), "phy_action", phy_action)
+        # if phy_action[2] != 0:
+        #     print("MC #", self.id, "sent to", phy_action[0], phy_action[1], "and charge in", phy_action[2])
         destination = np.array([phy_action[0], phy_action[1]])
         chargingTime = phy_action[2]
 
@@ -142,7 +152,8 @@ class MobileCharger:
         usedEnergy += tmp * chargingTime
         usedEnergy += euclidean(destination, self.net.baseStation.location) * self.pm
 
-        if usedEnergy > self.energy - self.threshold - self.capacity / 200.0:
+        if (not self.is_active) and usedEnergy > self.energy - self.threshold - self.capacity / 200.0:
+            self.is_active = True
             self.cur_phy_action = phy_action
             self.cur_action_type = "moving"
             yield self.env.process(self.move(destination=self.net.baseStation.location))
@@ -150,12 +161,19 @@ class MobileCharger:
             yield self.env.process(self.move(destination=destination))
             self.cur_action_type = "charging"
             yield self.env.process(self.charge(chargingTime=chargingTime))
+            self.cur_action_type = "deactive"
+            self.is_active = False
             return
-        self.cur_phy_action = phy_action
-        self.cur_action_type = "moving"
-        yield self.env.process(self.move(destination=destination))
-        self.cur_action_type = "charging"
-        yield self.env.process(self.charge(chargingTime=chargingTime))
+        if not self.is_active and (destination[0] != 500 and destination[1] != 500):
+            self.is_active = True
+            self.cur_phy_action = phy_action
+            self.cur_action_type = "moving"
+            yield self.env.process(self.move(destination=destination))
+            self.cur_action_type = "charging"
+            yield self.env.process(self.charge(chargingTime=chargingTime))
+            self.cur_action_type = "deactive"
+            self.is_active = False
+            return
 
 
     def operate_step_v3(self, net, time_stem, optimizer):

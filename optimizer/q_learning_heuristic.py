@@ -1,28 +1,45 @@
+import random
+
 import numpy as np
 from scipy.spatial import distance
 
-from optimizer.utils import init_function, q_max_function, reward_function, network_clustering, network_clustering_v2
+from optimizer.utils import init_function, q_max_function, reward_function, network_clustering_v2
 from physical_env.network import Node
 
 
 class Q_learningv2:
     def __init__(self, init_func=init_function, nb_action=30, alpha=0, q_alpha=0.5, q_gamma=0.5, load_checkpoint=False, net=None):
-        self.action_list = np.zeros(nb_action + 1)
+        self.action_list = np.zeros(nb_action)
         self.nb_action = nb_action
         self.q_table = init_func(nb_action=nb_action)
         # self.state = nb_action
-        self.charging_time = [0.0 for _ in range(nb_action + 1)]
-        self.reward = np.asarray([0.0 for _ in range(nb_action + 1)])
-        self.reward_max = [0.0 for _ in range(nb_action + 1)]
+        self.charging_time = [0.0 for _ in range(nb_action)]
+        self.reward = np.asarray([0.0 for _ in range(nb_action)])
+        self.reward_max = [0.0 for _ in range(nb_action)]
         self.list_request = []
         self.alpha = alpha
         self.q_alpha = q_alpha
         self.q_gamma = q_gamma
 
-    def update(self, mc, network, time_stem, alpha=0.5, gamma=0.5, q_max_func=q_max_function):
-        if not len(self.list_request):
-            return self.action_list[mc.state], 0.0
+    def update_v2(self, mc, network, time_stem, alpha=0.5, gamma=0.5, q_max_func=q_max_function):
+        if mc.state == -1:
+            return np.max(self.q_table), self.q_table, network.baseStation.location, 0
 
+        self.set_reward(mc=mc, time_stem=time_stem, network=network)
+        self.q_table[mc.state] = (1 - self.q_alpha) * self.q_table[mc.state] + self.q_alpha * (
+                    self.reward + self.q_gamma * self.q_max(mc, q_max_func))
+        # print(self.q_table)
+        self.choose_next_state_v2(mc, network)
+        charging_time = self.charging_time[mc.state]
+        # if mc.state == len(self.q_table) - 1:
+        #     charging_time = 0
+        # print("[Optimizer] MC #{} is sent to point {} (id={}) and charge for {:.2f}s".format(mc.id,
+        #                                                                                      self.action_list[mc.state],
+        #                                                                                      mc.state, charging_time))
+        # print(self.charging_time)
+        return np.max(self.q_table), self.q_table, self.action_list[mc.state], charging_time
+
+    def update(self, mc, network, time_stem, alpha=0.5, gamma=0.5, q_max_func=q_max_function):
         self.set_reward(mc=mc, time_stem=time_stem, network=network)
         self.q_table[mc.state] = (1 - self.q_alpha) * self.q_table[mc.state] + self.q_alpha * (
                 self.reward + self.q_gamma * self.q_max(mc, q_max_func))
@@ -68,7 +85,18 @@ class Q_learningv2:
             # print(self.reward_max[mc.state])
             # print(self.action_list[mc.state])
 
-    def net_partition(self, net=None, net_clustering_func=network_clustering):
-        # self.action_list = net_clustering_func(self, network=net, nb_cluster=self.nb_action)
-        self.action_list = net_clustering_func(self, network=net)
-        return self.action_list
+    def choose_next_state_v2(self, mc, network):
+        # if random.random() < mc.e:
+        #     mc.state = self.q_table[mc.state][random.randint(0, len(self.q_table)-1)]
+        # else:
+            mc.state = np.argmax(self.q_table[mc.state])
+        # if mc.e > 0:
+        #     mc.e -= 0.01
+        # else:
+        #     mc.e = 0.00000000001
+
+
+    # def net_partition(self, net=None, net_clustering_func=network_clustering):
+    #     # self.action_list = net_clustering_func(self, network=net, nb_cluster=self.nb_action)
+    #     self.action_list = net_clustering_func(self, network=net)
+    #     return self.action_list

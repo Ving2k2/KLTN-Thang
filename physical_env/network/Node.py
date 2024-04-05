@@ -88,7 +88,7 @@ class Node:
                 del self.log[0]
                 self.log.append(self.log_energy)
                 self.energy_per_second = self.energyCS
-                if self.energyCS:
+                if self.energyCS >= 0:
                     self.radius = np.sqrt(self.alpha / self.energyCS) - self.beta
         return
 
@@ -173,7 +173,7 @@ class Node:
         tmp = mc.alpha / (euclidean(self.location, mc.location) + mc.beta) ** 2
         self.energyRR += tmp
         mc.chargingRate += tmp
-        print("charging_energy ", mc.chargingRate)
+        # print("charging_energy ", mc.chargingRate)
 
     def charger_disconnection(self, mc):
         if self.status == 0:
@@ -198,8 +198,8 @@ class Node:
 
 
     def check_status(self):
-        # if self.energy <= self.threshold:
-        if self.energy <= 0:
+        if self.energy <= self.threshold:
+        # if self.energy <= 0:
             self.status = 0
             self.energyCS = 0
 

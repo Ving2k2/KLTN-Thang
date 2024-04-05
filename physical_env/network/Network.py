@@ -1,10 +1,14 @@
 import copy
 import numpy as np
+from scipy.spatial import distance
+
 import optimizer
-from optimizer.utils import network_clustering
-from physical_env.network.utils import network_clustering
+# from optimizer.utils import network_clustering
+from physical_env.network.utils import network_clustering, network_cluster_id_node
+
+
 class Network:
-    def __init__(self, env, listNodes, baseStation, listTargets, mc_list = None, max_time = None):
+    def __init__(self, env, listNodes, baseStation, listTargets, mc_list=None, max_time=None):
         self.env = env
         self.listNodes = listNodes
         self.baseStation = baseStation
@@ -17,8 +21,10 @@ class Network:
         self.max_time = max_time
         self.mc_list = mc_list
         self.network_cluster = []
+        self.network_cluster_id_node = []
 
-        self.frame = np.array([self.baseStation.location[0], self.baseStation.location[0], self.baseStation.location[1], self.baseStation.location[1]], np.float64)
+        self.frame = np.array([self.baseStation.location[0], self.baseStation.location[0], self.baseStation.location[1],
+                               self.baseStation.location[1]], np.float64)
         it = 0
         for node in self.listNodes:
             node.id = it
@@ -36,7 +42,6 @@ class Network:
         for target in listTargets:
             target.id = it
             it += 1
-         
 
     # Function is for setting nodes' level and setting all targets as covered
     def setLevels(self):
@@ -70,12 +75,12 @@ class Network:
             tmp2.clear()
         return
 
-
     def operate(self, t=1, optimizer=None):
         request_id = []
         for node in self.listNodes:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
+        first_step = 0
 
         while True:
             yield self.env.timeout(t / 10.0)
@@ -84,34 +89,99 @@ class Network:
             yield self.env.timeout(10)
             if not self.network_cluster:
                 self.network_cluster = network_clustering(network=self)
+                self.network_cluster_id_node = network_cluster_id_node(network=self)
                 optimizer.action_list = self.network_cluster
             yield self.env.timeout(9.0 * t / 10.0)
             # optimizer.action_list = network_clustering(optimizer=optimizer, network=self, nb_cluster=83)
             for index, node in enumerate(self.listNodes):
-                if node.energy <= node.threshold:
-                    node.request(optimizer = optimizer, t=t)
+                # if node.energy <= node.threshold * 2:
+                if node.energy <= 5400:
+                    node.request(optimizer=optimizer, t=t)
                     # print(optimizer.list_request)
                     request_id.append(index)
                 else:
                     node.is_request = False
+            arr_active_mc = []
+            for mc in self.mc_list:
+                if mc.cur_action_type == "deactive":
+                    arr_active_mc.append(0)
+                else:
+                    arr_active_mc.append(1)
+            a = 0
+            b = 0
+            # len_list_request_before = len(optimizer.list_request)
+            if optimizer.list_request and self.alive:
+            # Phương án 1
+                # if (len_list_request_before != len_list_request_after and np.argmin(arr_active_mc) == 0) or (len_list_request_before == len_list_request_after and np.argmin(arr_active_mc != 0)):
+                #     len_list_request_after = len(optimizer.list_request)
+                #     arr_q_max = []
+                #     for id, mc in enumerate(self.mc_list):
+                #         result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
+                #         if mc.is_active:
+                #             arr_q_max.append(0)
+                #         else:
+                #             arr_q_max.append(result)
+                #
+                #     choose_mc = np.argmax(arr_q_max)
+                #     phy_action = self.mc_list[choose_mc].next_phy_action
+                #     self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
+            # Phương án 2
+                if np.argmin(arr_active_mc) == 0:
+                    b = len(optimizer.list_request)
+                    if b != a:
+                        arr_q_max = []
+                        for id, mc in enumerate(self.mc_list):
+                            if first_step == 0:
+                                temp = (optimizer.list_request[0])["id"]
+                                mc.state = self.check_cluster(id_node=(optimizer.list_request[0])["id"])
+                            result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
+                            if mc.is_active:
+                                arr_q_max.append(0)
+                            else:
+                                arr_q_max.append(result)
 
-            # if (request_id):
-            #     print(len(request_id))
-            #     print(request_id)
-            # for request in optimizer.list_request:
-            #     print(request)
-            if optimizer and self.alive:
-                for mc in self.mc_list:
-                    self.env.process(mc.operate_step_v3(net=self, optimizer=optimizer, time_stem=t))
+                        first_step = 10
+                        if arr_q_max[np.argmax(arr_q_max)] != 0:
+                            choose_mc = np.argmax(arr_q_max)
+                            phy_action = self.mc_list[choose_mc].next_phy_action
+                            self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
+                            a = b
+            #Phuowng an 3
+                # arr_q_max = []
+                # for id, mc in enumerate(self.mc_list):
+                #     result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
+                #     if mc.is_active:
+                #         arr_q_max.append(0)
+                #     else:
+                #         arr_q_max.append(result)
+                #
+                # choose_mc = np.argmax(arr_q_max)
+                # is_same_destination = False
+                # for other_mc in self.mc_list:
+                #     choose_mc_next_destination = (self.mc_list[choose_mc].next_phy_action[0], self.mc_list[choose_mc].next_phy_action[1])
+                #     other_mc_next_destination = (other_mc.cur_phy_action[0], other_mc.cur_phy_action[1])
+                #     if other_mc.id != choose_mc and distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
+                #         is_same_destination = True
+                # if not is_same_destination:
+                #     phy_action = self.mc_list[choose_mc].next_phy_action
+                #     self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
+                # self.env.timeout(50)
+
             # if self.alive == 0 or self.env.now >= self.max_time:
             if self.alive == 0:
                 break
         return
 
+    def check_cluster(self, id_node):
+        for id_cluster, cluster in enumerate(self.network_cluster_id_node):
+            for node_cluster in cluster:
+                if node_cluster == id_node:
+                    return id_cluster
+
     # If any target dies, value is set to 0
     def check_targets(self):
         return min(self.targets_active)
-    
+
     def check_nodes(self):
         tmp = 0
         for node in self.listNodes:

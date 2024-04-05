@@ -39,6 +39,21 @@ def request_function(node, optimizer, t):
         {"id": node.id, "energy": node.energy, "energyCS": node.energyCS, "energy_estimate": node.energy,
          "time": t})
 
+def network_cluster_id_node(network = None):
+    nodes = network.listNodes
+    location_nodes = []
+    radius_nodes = []
+    for node in nodes:
+        radius_nodes.append(node.radius)
+        location_nodes.append(node.location)
+
+    set_arr_interecting_circles = find_set_of_interecting_circles(location_nodes, radius_nodes)
+    set_arr_interecting_circles = remove_arr_of_set(set_arr_interecting_circles)
+    set_arr_interecting_circles = remove_common_elements2(set_arr_interecting_circles, location_nodes)
+    #
+    arr_name_nodes = set_arr_interecting_circles
+    return arr_name_nodes
+
 def network_clustering(network=None):
     nodes = network.listNodes
     location_nodes = []
@@ -79,7 +94,7 @@ def network_clustering(network=None):
     #             if node_id == i:
     #                 charging_pos_each_node.append(charging_pos[index])
 
-    charging_pos.append(network.baseStation.location)
+    # charging_pos.append(network.baseStation.location)
     # name_fig = "./fig/{}.png".format("charging_pos")
     # plt.savefig(name_fig)
     return charging_pos

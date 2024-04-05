@@ -46,7 +46,13 @@ def print_state_net(net, mcs):
     print("[Network] Simulating time: {}s, lowest energy node is: id={} energy={:.2f} at {}".format(
         net.env.now, net.min_node(), net.listNodes[net.min_node()].energy, net.listNodes[net.min_node()].location))
     for mc in net.mc_list:
-        print("\t\tMC #{} is {} at {}".format(mc.id, mc.cur_action_type, mc.location))
+        if mc.chargingTime != 0 and mc.cur_action_type == "charging":
+            print("\t\tMC #{} energy:{} is {} at {} and charging in {}s state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location, mc.chargingTime, mc.state))
+        elif mc.arrival_time != 0 and mc.cur_action_type == "moving":
+            print("\t\tMC #{} energy:{} is {} to {} and arrival in {:.2f}s state:{}".format(mc.id,mc.energy, mc.cur_action_type, (mc.cur_phy_action[0], mc.cur_phy_action[1]), mc.arrival_time, mc.state))
+        else:
+            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location, mc.state))
+
 
 def plot_network(net):
     G = nx.Graph()
