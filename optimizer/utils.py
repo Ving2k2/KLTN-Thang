@@ -21,7 +21,14 @@ from physical_env.network.utils import find_receiver
 from physical_env.network import Node
 
 def q_max_function(q_table, state):
+    # temp = []
+    # for index, row in enumerate(q_table):
+    #     if (index != state):
+    #         temp.append(max(row))
+    #     else:
+    #         temp.append(-float(int))
     temp = [max(row) if index != state else -float("inf") for index, row in enumerate(q_table)]
+    # temp = [max(row) if index != state else 0 for index, row in enumerate(q_table)]
     return np.asarray(temp)
 
 def reward_function(network, mc, q_learning, state, time_stem):
@@ -92,19 +99,19 @@ def get_all_path(net):
 def get_charge_per_sec(net, q_learning, state):
     arr = []
     for request in q_learning.list_request:
-        arr.append((para.alpha) / (distance.euclidean(net.listNodes[request["id"]].location, q_learning.action_list[state]) + para.beta) ** 2)
+        arr.append(para.alpha / (distance.euclidean(net.listNodes[request["id"]].location, q_learning.action_list[state]) + para.beta) ** 2)
     # return np.asarray(
     #     [para.alpha / (distance.euclidean(net.listNodes[request["id"]].location, q_learning.action_list[state]) + para.beta) ** 2 for
     #      request in q_learning.list_request])
     return arr
 
 
-def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state=None, alpha=0.1): #Thang change alpha from 0.1 to 0.2
+def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state=None, alpha=0.5): #Thang change alpha from 0.1 to 0.2
     # request_id = [request["id"] for request in network.mc.list_request]
     # print("state ne", state, "value_action_list", q_learning.action_list[state])
     time_move = distance.euclidean(mc.location, q_learning.action_list[state]) / mc.velocity
-    # energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
-    energy_min = 6400
+    energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
+    # energy_min = 6400
     s1 = []  # list of node in request list which has positive charge
     s2 = []  # list of node not in request list which has negative charge
     for node in network.listNodes:
@@ -136,7 +143,7 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
         for index, p, p1 in s1:
             temp = network.listNodes[index].energy - time_move * network.listNodes[index].energyCS + p1 + (
                     p - network.listNodes[index].energyCS) * item
-            if temp < energy_min:
+            if temp <= energy_min:
                 nb_dead += 1
         for index, p, p1 in s2:
             temp = network.listNodes[index].energy - time_move * network.listNodes[index].energyCS + p1 + (

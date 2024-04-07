@@ -114,7 +114,7 @@ class MobileCharger:
             moving_time -= span
             self.checkStatus()
         # print("energy after moving", self.energy)
-        return self.arrival_time, self.end_time
+        return self.arrival_time
 
     def move_time(self, destination):
         moving_time = euclidean(destination, self.location) / self.velocity

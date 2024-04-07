@@ -36,7 +36,7 @@ def request_function(node, optimizer, t):
     #                 "id": id,
     #             })
     optimizer.list_request.append(
-        {"id": node.id, "energy": node.energy, "energyCS": node.energyCS, "energy_estimate": node.energy,
+        {"id": node.id, "energy": node.energy, "energyCS": node.energyCS, "energyRR": node.energyRR,
          "time": t})
 
 def network_cluster_id_node(network = None):

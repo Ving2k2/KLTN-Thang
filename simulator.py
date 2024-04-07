@@ -13,14 +13,17 @@ import copy
 import networkx as nx
 # from networkx.drawing import draw
 from datetime import datetime
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 
 def log(net, mcs, q_learning):
     # If you want to print something, just put it here. Do not fix the core code.
     while True:
-        yield net.env.timeout(100)
+        yield net.env.timeout(50)
         # plot_network(net)
         print_state_net(net, mcs)
+        print(q_learning.list_request)
         # for id, point in enumerate(net.network_cluster):
         #     print(id, point)
         # arr = []
@@ -42,16 +45,28 @@ def log(net, mcs, q_learning):
         #     print(point[0], point[1])
         # node_safety_circle_plot(net)
 
+
 def print_state_net(net, mcs):
     print("[Network] Simulating time: {}s, lowest energy node is: id={} energy={:.2f} at {}".format(
         net.env.now, net.min_node(), net.listNodes[net.min_node()].energy, net.listNodes[net.min_node()].location))
+    print("energy of node 57 is", net.listNodes[57].energy, "energy of node 6:", net.listNodes[6].energy)
     for mc in net.mc_list:
+        # if mc.state >= 0:
+        #     print(mc.q_table[mc.state])
         if mc.chargingTime != 0 and mc.cur_action_type == "charging":
-            print("\t\tMC #{} energy:{} is {} at {} and charging in {}s state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location, mc.chargingTime, mc.state))
+            print("\t\tMC #{} energy:{} is {} at {} and charging in {}s state:{}".format(mc.id, mc.energy,
+                                                                                         mc.cur_action_type,
+                                                                                         mc.location, mc.chargingTime,
+                                                                                         mc.state))
         elif mc.arrival_time != 0 and mc.cur_action_type == "moving":
-            print("\t\tMC #{} energy:{} is {} to {} and arrival in {:.2f}s state:{}".format(mc.id,mc.energy, mc.cur_action_type, (mc.cur_phy_action[0], mc.cur_phy_action[1]), mc.arrival_time, mc.state))
+            print("\t\tMC #{} energy:{} is {} to {} and arrival in {:.2f}s state:{}".format(mc.id, mc.energy,
+                                                                                            mc.cur_action_type, (
+                                                                                            mc.cur_phy_action[0],
+                                                                                            mc.cur_phy_action[1]),
+                                                                                            mc.arrival_time, mc.state))
         else:
-            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location, mc.state))
+            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location,
+                                                                     mc.state))
 
 
 def plot_network(net):
@@ -85,6 +100,7 @@ def plot_network(net):
     # Hiển thị đồ thị
     plt.show()
 
+
 def draw_sensor_icon(ax, x, y, icon_path, icon_size):
     """
     Vẽ biểu tượng cảm biến tại tọa độ (x, y).
@@ -101,6 +117,7 @@ def draw_sensor_icon(ax, x, y, icon_path, icon_size):
     """
     icon = plt.imread(icon_path)
     ax.imshow(icon, extent=[x - icon_size / 2, x + icon_size / 2, y - icon_size / 2, y + icon_size / 2])
+
 
 def plot_circles(nodes, arr_name_nodes, radiuses, base_station_icon_path):
     """
@@ -143,6 +160,7 @@ def plot_circles(nodes, arr_name_nodes, radiuses, base_station_icon_path):
         all_intersections.append(intersections)
     return all_intersections
 
+
 def draw_battery(ax, x, y, width, height, charge_percentage):
     ax.add_patch(Rectangle((x, y), width, height, edgecolor='black', facecolor='none'))
     charge_height = height * charge_percentage / 100
@@ -160,10 +178,12 @@ def draw_battery(ax, x, y, width, height, charge_percentage):
     bolt_y = y + charge_height / 2
     ax.text(bolt_x, bolt_y, '⚡', fontsize=20, color='blue', va='center', ha='center')
 
+
 networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yaml")
 env, net = networkIO.makeNetwork()
 
-with open("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml", 'r') as file:
+with open("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml",
+          'r') as file:
     mc_argc = yaml.safe_load(file)
 mcs = [MobileCharger(copy.deepcopy(net.baseStation.location), mc_phy_spe=mc_argc) for _ in range(3)]
 print(mc for mc in mcs)
@@ -178,4 +198,4 @@ print("start program")
 net.mc_list = mcs
 x = env.process(net.operate(optimizer=q_learning))
 env.process(log(net, mcs, q_learning))
-env.run(until = x)
+env.run(until=x)

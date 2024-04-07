@@ -8,7 +8,7 @@ from physical_env.network import Node
 
 
 class Q_learningv2:
-    def __init__(self, init_func=init_function, nb_action=30, alpha=0, q_alpha=0.5, q_gamma=0.5, load_checkpoint=False, net=None):
+    def __init__(self, init_func=init_function, nb_action=30, alpha=0.5, q_alpha=0.5, q_gamma=0.5, load_checkpoint=False, net=None):
         self.action_list = np.zeros(nb_action)
         self.nb_action = nb_action
         self.q_table = init_func(nb_action=nb_action)
@@ -26,8 +26,11 @@ class Q_learningv2:
             return np.max(self.q_table), self.q_table, network.baseStation.location, 0
 
         self.set_reward(mc=mc, time_stem=time_stem, network=network)
+        temp = self.q_max(mc, q_max_func)
+        # self.q_table[mc.state] = (1 - self.q_alpha) * self.q_table[mc.state] + self.q_alpha * (
+        #             self.reward + self.q_gamma * self.q_max(mc, q_max_func))
         self.q_table[mc.state] = (1 - self.q_alpha) * self.q_table[mc.state] + self.q_alpha * (
-                    self.reward + self.q_gamma * self.q_max(mc, q_max_func))
+                self.reward)
         # print(self.q_table)
         self.choose_next_state_v2(mc, network)
         charging_time = self.charging_time[mc.state]
@@ -72,7 +75,8 @@ class Q_learningv2:
         first = first / np.sum(first)
         second = second / np.sum(second)
         third = third / np.sum(third)
-        self.reward = first + second + third
+        self.reward = first + third
+        # self.reward = first + second + third
         self.reward_max = list(zip(first, second, third))
 
     def choose_next_state(self, mc, network):
@@ -89,7 +93,7 @@ class Q_learningv2:
         # if random.random() < mc.e:
         #     mc.state = self.q_table[mc.state][random.randint(0, len(self.q_table)-1)]
         # else:
-            mc.state = np.argmax(self.q_table[mc.state])
+        mc.state = np.nanargmax(self.q_table[mc.state])
         # if mc.e > 0:
         #     mc.e -= 0.01
         # else:
