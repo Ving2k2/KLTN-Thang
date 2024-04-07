@@ -177,7 +177,7 @@ def draw_battery(ax, x, y, width, height, charge_percentage):
     ax.text(bolt_x, bolt_y, '⚡', fontsize=20, color='blue', va='center', ha='center')
 
 
-networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yaml")
+networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n150.yaml")
 env, net = networkIO.makeNetwork()
 
 with open("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml",
@@ -190,7 +190,7 @@ for id, mc in enumerate(mcs):
     mc.net = net
     mc.id = id
     mc.cur_phy_action = [net.baseStation.location[0], net.baseStation.location[1], 0]
-q_learning = Q_learningv2(net=net, nb_action=30)
+q_learning = Q_learningv2(net=net, nb_action=62)
 
 print("start program")
 net.mc_list = mcs

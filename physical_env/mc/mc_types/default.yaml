@@ -1,6 +1,5 @@
 # MobileCharger specifications
 "capacity" : 108000
-#"capacity" : 20000
 "threshold" : 0
 "velocity" : 5
 "pm" : 1
