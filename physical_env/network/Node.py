@@ -206,6 +206,19 @@ class Node:
     def __str__(self):
         return f"Node(id='{self.id}', location={self.location})"
 
-
+    def charge(self, mc):
+        """
+        charging to sensor
+        :param mc: mobile charger
+        :return: the amount of energy mc charges to this sensor
+        """
+        if self.energy <= self.capacity - 10 ** -5 and mc.is_stand and self.status:
+            d = distance.euclidean(self.location, mc.current)
+            p_theory = self.alpha / (d + self.beta) ** 2
+            p_actual = min(self.capacity - self.energy, p_theory)
+            self.energy = self.energy + p_actual
+            return p_actual
+        else:
+            return 0
 # def find_receiver():
 #     return None

@@ -94,7 +94,7 @@ def network_clustering(network=None):
     #             if node_id == i:
     #                 charging_pos_each_node.append(charging_pos[index])
 
-    # charging_pos.append(network.baseStation.location)
+    charging_pos.append(network.baseStation.location)
     # name_fig = "./fig/{}.png".format("charging_pos")
     # plt.savefig(name_fig)
     return charging_pos

@@ -53,19 +53,17 @@ def print_state_net(net, mcs):
     for mc in net.mc_list:
         # if mc.state >= 0:
         #     print(mc.q_table[mc.state])
-        if mc.chargingTime != 0 and mc.cur_action_type == "charging":
-            print("\t\tMC #{} energy:{} is {} at {} and charging in {}s state:{}".format(mc.id, mc.energy,
-                                                                                         mc.cur_action_type,
-                                                                                         mc.location, mc.chargingTime,
+        if mc.chargingTime != 0 and mc.get_status() == "charging":
+            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy,
+                                                                                         mc.get_status(),
+                                                                                         mc.current,
                                                                                          mc.state))
-        elif mc.arrival_time != 0 and mc.cur_action_type == "moving":
-            print("\t\tMC #{} energy:{} is {} to {} and arrival in {:.2f}s state:{}".format(mc.id, mc.energy,
-                                                                                            mc.cur_action_type, (
-                                                                                            mc.cur_phy_action[0],
-                                                                                            mc.cur_phy_action[1]),
-                                                                                            mc.arrival_time, mc.state))
+        elif mc.moving_time != 0 and mc.get_status() == "moving":
+            print("\t\tMC #{} energy:{} is {} to {} state:{}".format(mc.id, mc.energy,
+                                                                                            mc.get_status(), mc.end,
+                                                                                            mc.state))
         else:
-            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.cur_action_type, mc.location,
+            print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.get_status(), mc.current,
                                                                      mc.state))
 
 

@@ -81,14 +81,14 @@ class Network:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
         first_step = 0
-        energy_warning = 5400
+        energy_warning = self.listNodes[0].threshold * 10
 
         while True:
             yield self.env.timeout(t / 10.0)
             self.setLevels()
             self.alive = self.check_targets()
-            yield self.env.timeout(10)
             if not self.network_cluster:
+                yield self.env.timeout(10)
                 self.network_cluster = network_clustering(network=self)
                 self.network_cluster_id_node = network_cluster_id_node(network=self)
                 optimizer.action_list = self.network_cluster
@@ -111,39 +111,47 @@ class Network:
             a = 0
             b = 0
             len_list_request_before = len(optimizer.list_request)
-            if optimizer.list_request and self.alive:
-                # Phương án 4
-                if np.argmin(arr_active_mc) == 0:
-                    for mc in self.mc_list:
-                        if (not mc.is_active) and optimizer.list_request:
-                            # new_list_request = []
-                            # for request in optimizer.list_request:
-                            #     if self.listNodes[request["id"]].energy < energy_warning:
-                            #         new_list_request.append(
-                            #             {"id": self.listNodes[request["id"]].id,
-                            #              "energy": self.listNodes[request["id"]].energy,
-                            #              "energyCS": self.listNodes[request["id"]].energyCS,
-                            #              "energyRR": self.listNodes[request["id"]].energyRR, "time": t})
-                            #     else:
-                            #         self.listNodes[request["id"]].is_request = False
-                            # optimizer.list_request = new_list_request
-                            result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
-                            # print(mc.q_table[mc.state])
-                            is_same_destination = False
-                            for other_mc in self.mc_list:
-                                if other_mc.id != mc.id:
-                                    choose_mc_next_destination = (mc.next_phy_action[0], mc.next_phy_action[1])
-                                    other_mc_next_destination = (other_mc.next_phy_action[0], other_mc.next_phy_action[1])
-                                    if distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
-                                        is_same_destination = True
-                                        break
-                            if not is_same_destination:
-                                phy_action = self.mc_list[mc.id].next_phy_action
-                                self.delete_request(id_cluster=mc.state, optimizer=optimizer)
-                                # s = "stop here"
-                                self.env.process(mc.operate_step_v4(phy_action=phy_action))
+            if optimizer and self.alive:
+                for mc in self.mc_list:
+                    # for other_mc in self.mc_list:
+                    #     if (other_mc.id != mc.id and distance.euclidean())
+                    # if distance.euclidean(mc.end, )
+                    mc.runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
+                    # if (self.env.now % 100 == 0):
+                    #     print(self.env.now, "time_stem")
 
-            # Phương án 1
+                # Phương án 4
+            #     if np.argmin(arr_active_mc) == 0:
+            #         for mc in self.mc_list:
+            #             if (not mc.is_active) and optimizer.list_request:
+            #                 # new_list_request = []
+            #                 # for request in optimizer.list_request:
+            #                 #     if self.listNodes[request["id"]].energy < energy_warning:
+            #                 #         new_list_request.append(
+            #                 #             {"id": self.listNodes[request["id"]].id,
+            #                 #              "energy": self.listNodes[request["id"]].energy,
+            #                 #              "energyCS": self.listNodes[request["id"]].energyCS,
+            #                 #              "energyRR": self.listNodes[request["id"]].energyRR, "time": t})
+            #                 #     else:
+            #                 #         self.listNodes[request["id"]].is_request = False
+            #                 # optimizer.list_request = new_list_request
+            #                 result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
+            #                 # print(mc.q_table[mc.state])
+            #                 is_same_destination = False
+            #                 for other_mc in self.mc_list:
+            #                     if other_mc.id != mc.id:
+            #                         choose_mc_next_destination = (mc.next_phy_action[0], mc.next_phy_action[1])
+            #                         other_mc_next_destination = (other_mc.next_phy_action[0], other_mc.next_phy_action[1])
+            #                         if distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
+            #                             is_same_destination = True
+            #                             break
+            #                 if not is_same_destination:
+            #                     phy_action = self.mc_list[mc.id].next_phy_action
+            #                     self.delete_request(id_cluster=mc.state, optimizer=optimizer)
+            #                     # s = "stop here"
+            #                     self.env.process(mc.operate_step_v4(phy_action=phy_action))
+            #
+            # # Phương án 1
             #     if (len_list_request_before != len_list_request_after and np.argmin(arr_active_mc) == 0) or (len_list_request_before == len_list_request_after and np.argmin(arr_active_mc != 0)):
             #         len_list_request_after = len(optimizer.list_request)
             #         arr_q_max = []
