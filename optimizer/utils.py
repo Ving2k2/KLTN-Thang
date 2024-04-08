@@ -110,8 +110,8 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
     # request_id = [request["id"] for request in network.mc.list_request]
     # print("state ne", state, "value_action_list", q_learning.action_list[state])
     time_move = distance.euclidean(mc.location, q_learning.action_list[state]) / mc.velocity
-    energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
-    # energy_min = 6400
+    # energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
+    energy_min = 17000
     s1 = []  # list of node in request list which has positive charge
     s2 = []  # list of node not in request list which has negative charge
     for node in network.listNodes:

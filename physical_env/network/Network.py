@@ -81,7 +81,7 @@ class Network:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
         first_step = 0
-        energy_warning = self.listNodes[0].threshold * 10
+        energy_warning = self.listNodes[0].threshold * 30
 
         while True:
             yield self.env.timeout(t / 10.0)

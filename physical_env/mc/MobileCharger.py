@@ -51,6 +51,7 @@ class MobileCharger:
         self.moving_time = 0
         self.arrival_time = 0
         self.e_move = mc_phy_spe['velocity']
+        self.next_location = [500, 500]
 
     def charge_step(self, t):
         """
@@ -377,8 +378,16 @@ class MobileCharger:
 
     def get_next_location(self, network, time_stem, optimizer=None):
         next_location, charging_time = optimizer.update(self, network, time_stem)
+        # self.next_location = next_location
+        # same_destination = False
+        # for other_mc in self.net.mc_list:
+        #     if other_mc.id != self.id and distance.euclidean(self.next_location, other_mc.next_location) > 1:
+        #         same_destination = True
+        #         break
+
+        # if not same_destination:
         self.start = self.current
-        # self.cur_phy_action = [next_location[0], next_location[1], charging_time]
+            # self.cur_phy_action = [next_location[0], next_location[1], charging_time]
         self.end = next_location
         self.moving_time = distance.euclidean(self.location, self.end) / self.velocity
         self.end_time = time_stem + self.moving_time + charging_time
@@ -411,7 +420,7 @@ class MobileCharger:
             self.is_active = True
             new_list_request = []
             for request in optimizer.list_request:
-                if net.listNodes[request["id"]].energy < net.listNodes[request["id"]].threshold * 10:
+                if net.listNodes[request["id"]].energy < net.listNodes[request["id"]].threshold * 30:
                     new_list_request.append(request)
                 else:
                     net.listNodes[request["id"]].is_request = False

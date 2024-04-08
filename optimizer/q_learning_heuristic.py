@@ -89,6 +89,8 @@ class Q_learningv2:
             print('[Optimizer] MC #{} energy is running low ({:.2f}), and needs to rest!'.format(mc.id, mc.energy))
         else:
             mc.state = np.argmax(self.q_table[mc.state])
+            if (mc.state == len(self.q_table) - 1):
+                mc.state = random.randrange(len(self.q_table)-1)
             # print(self.reward_max[mc.state])
             # print(self.action_list[mc.state])
 
