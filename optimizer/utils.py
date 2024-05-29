@@ -111,7 +111,8 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
     # print("state ne", state, "value_action_list", q_learning.action_list[state])
     time_move = distance.euclidean(mc.location, q_learning.action_list[state]) / mc.velocity
     # energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
-    energy_min = 17000
+    # energy_min = 6500
+    energy_min = network.listNodes[0].warning + 1000
     s1 = []  # list of node in request list which has positive charge
     s2 = []  # list of node not in request list which has negative charge
     for node in network.listNodes:
@@ -134,9 +135,9 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
     for index, p, p1 in s1:
         t.append((energy_min - network.listNodes[index].energy + time_move * network.listNodes[index].energyCS - p1) / (
                 p - network.listNodes[index].energyCS))
-    for index, p, p1 in s2:
-        t.append((energy_min - network.listNodes[index].energy + time_move * network.listNodes[index].energyCS - p1) / (
-                p - network.listNodes[index].energyCS))
+    # for index, p, p1 in s2:
+    #     t.append((energy_min - network.listNodes[index].energy + time_move * network.listNodes[index].energyCS - p1) / (
+    #             p - network.listNodes[index].energyCS))
     dead_list = []
     for item in t:
         nb_dead = 0
@@ -145,11 +146,11 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
                     p - network.listNodes[index].energyCS) * item
             if temp <= energy_min:
                 nb_dead += 1
-        for index, p, p1 in s2:
-            temp = network.listNodes[index].energy - time_move * network.listNodes[index].energyCS + p1 + (
-                    p - network.listNodes[index].energyCS) * item
-            if temp < energy_min:
-                nb_dead += 1
+        # for index, p, p1 in s2:
+        #     temp = network.listNodes[index].energy - time_move * network.listNodes[index].energyCS + p1 + (
+        #             p - network.listNodes[index].energyCS) * item
+        #     if temp < energy_min:
+        #         nb_dead += 1
         dead_list.append(nb_dead)
     if dead_list:
         arg_min = np.argmin(dead_list)

@@ -20,10 +20,12 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 def log(net, mcs, q_learning):
     # If you want to print something, just put it here. Do not fix the core code.
     while True:
-        yield net.env.timeout(50)
+        yield net.env.timeout(100)
         # plot_network(net)
+        print(net.listNodes[26])
         print_state_net(net, mcs)
         print(q_learning.list_request)
+        print("e_RR", net.listNodes[57].energyRR)
         # for id, point in enumerate(net.network_cluster):
         #     print(id, point)
         # arr = []
@@ -180,7 +182,7 @@ def draw_battery(ax, x, y, width, height, charge_percentage):
 networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yaml")
 env, net = networkIO.makeNetwork()
 
-with open("C:\\Users\\HT-Com\\PycharmProjects\\multi_agent_rl_wrsn\\physical_env\\mc\\mc_types\\default.yaml",
+with open("D:\Documents\Senior-year\multi_agent_rl_wrsn_Double_Q\physical_env\mc\mc_types\default.yaml",
           'r') as file:
     mc_argc = yaml.safe_load(file)
 mcs = [MobileCharger(copy.deepcopy(net.baseStation.location), mc_phy_spe=mc_argc) for _ in range(3)]
@@ -190,8 +192,11 @@ for id, mc in enumerate(mcs):
     mc.net = net
     mc.id = id
     mc.cur_phy_action = [net.baseStation.location[0], net.baseStation.location[1], 0]
-q_learning = Q_learningv2(net=net, nb_action=30, alpha=0.5, q_gamma=0.1)
+q_learning = Q_learningv2(net=net, nb_action=37, alpha=0.1, q_gamma=0.1)
 
+# Node:   50    100     150     200
+# Center: 37    57      70      75
+# Time:   21.9  5.5
 print("start program")
 net.mc_list = mcs
 x = env.process(net.operate(optimizer=q_learning))

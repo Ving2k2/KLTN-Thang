@@ -18,13 +18,14 @@ def log(net):
     while True:
         yield net.env.timeout(10.0)
         print(net.env.now, net.check_nodes(), net.min_node())
+        print("highest_node ", net.highest_e_CS_node())
         # print("energyCS is ", print_arr_energyCS(net.listNodes))
         # print("radius: ", print_arr_radius(net.listNodes))
         # node_distribution_plot(net)
-        arr = plot_circlesv3(net)
-        print(len(arr))
-        for point in arr:
-            print(point[0], point[1])
+        # arr = plot_circlesv3(net)
+        # print(len(arr))
+        # for point in arr:
+        #     print(point[0], point[1])
         # node_safety_circle_plot(net)
 
 
@@ -100,7 +101,7 @@ def plot_circlesv3(network):
     return charging_pos
     # return
 
-networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yaml")
+networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n150.yaml")
 env, net = networkIO.makeNetwork()
 print("start program")
 

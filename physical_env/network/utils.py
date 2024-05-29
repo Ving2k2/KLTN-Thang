@@ -171,7 +171,7 @@ def find_set_of_interecting_circles(centers, radius):
   for point in intersections:
     point_in_circles = []
     for i in range(len(centers)):
-      if np.sqrt((point[0] - centers[i][0])**2 + (point[1] - centers[i][1])**2) <= radius[i] + 0.01:
+      if np.sqrt((point[0] - centers[i][0])**2 + (point[1] - centers[i][1])**2) <= radius[i] - 10:
         point_in_circles.append(i)
     set_points_in_circles.append(point_in_circles)
 

@@ -1,5 +1,5 @@
 node_phy_spe:
-  capacity: 10800
+  capacity: 30000
   com_range: 81
   efs: 1.0e-08
   emp: 1.3e-12

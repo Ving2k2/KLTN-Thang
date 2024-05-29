@@ -50,6 +50,7 @@ class Node:
         self.energy_per_second = 0
         self.radius = 0
         self.is_request = False
+        self.warning = self.capacity / 2
 
     def operate(self, t=1):
         """
@@ -204,7 +205,7 @@ class Node:
             self.energyCS = 0
 
     def __str__(self):
-        return f"Node(id='{self.id}', location={self.location})"
+        return f"Node(id='{self.id}', location={self.location},e_j = {self.energyCS})"
 
     def charge(self, mc):
         """
@@ -215,6 +216,7 @@ class Node:
         if self.energy <= self.capacity - 10 ** -5 and mc.is_stand and self.status:
             d = distance.euclidean(self.location, mc.current)
             p_theory = self.alpha / (d + self.beta) ** 2
+            # p_theory = 9000 / (d + self.beta) ** 2
             p_actual = min(self.capacity - self.energy, p_theory)
             self.energy = self.energy + p_actual
             return p_actual

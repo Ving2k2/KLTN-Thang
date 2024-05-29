@@ -23,6 +23,7 @@ class Network:
         self.network_cluster = []
         self.network_cluster_id_node = []
 
+
         self.frame = np.array([self.baseStation.location[0], self.baseStation.location[0], self.baseStation.location[1],
                                self.baseStation.location[1]], np.float64)
         it = 0
@@ -81,7 +82,7 @@ class Network:
             self.env.process(node.operate(t=t))
         self.env.process(self.baseStation.operate(t=t))
         first_step = 0
-        energy_warning = self.listNodes[0].threshold * 30
+        energy_warning = self.listNodes[0].warning
 
         while True:
             yield self.env.timeout(t / 10.0)
@@ -90,8 +91,10 @@ class Network:
             if not self.network_cluster:
                 yield self.env.timeout(10)
                 self.network_cluster = network_clustering(network=self)
+                # print(len(self.network_cluster))
                 self.network_cluster_id_node = network_cluster_id_node(network=self)
                 optimizer.action_list = self.network_cluster
+                print(len(optimizer.action_list))
             yield self.env.timeout(9.0 * t / 10.0)
             # optimizer.action_list = network_clustering(optimizer=optimizer, network=self, nb_cluster=83)
             for index, node in enumerate(self.listNodes):
@@ -102,21 +105,25 @@ class Network:
                     request_id.append(index)
                 else:
                     node.is_request = False
-            arr_active_mc = []
-            for mc in self.mc_list:
-                if mc.cur_action_type == "deactive":
-                    arr_active_mc.append(0)
+            # arr_active_mc = []
+            # for mc in self.mc_list:
+            #     if mc.cur_action_type == "deactive":
+            #         arr_active_mc.append(0)
+            #     else:
+            #         arr_active_mc.append(1)
+            if optimizer.list_request and self.alive:
+                if len(optimizer.list_request) <= 1:
+                    self.mc_list[0].runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
+                elif len(optimizer.list_request) == 2:
+                    self.mc_list[0].runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
+                    self.mc_list[1].runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
                 else:
-                    arr_active_mc.append(1)
-            a = 0
-            b = 0
-            len_list_request_before = len(optimizer.list_request)
-            if optimizer and self.alive:
-                for mc in self.mc_list:
-                    # for other_mc in self.mc_list:
-                    #     if (other_mc.id != mc.id and distance.euclidean())
-                    # if distance.euclidean(mc.end, )
-                    mc.runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
+                    for mc in self.mc_list:
+                        # for other_mc in self.mc_list:
+                        #     if (other_mc.id != mc.id and distance.euclidean())
+                        # if distance.euclidean(mc.end, )
+                        mc.runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
+                    # self.delete_request(id_cluster=mc.state, optimizer=optimizer)
                     # if (self.env.now % 100 == 0):
                     #     print(self.env.now, "time_stem")
 
@@ -264,3 +271,13 @@ class Network:
                 min_energy = node.energy
                 id_node_min = id
         return id_node_min
+
+    def highest_e_CS_node(self):
+        max = -100
+        id_highest_CS_node = -1
+        for node in self.listNodes:
+            if max < node.energyCS:
+                max = node.energyCS
+                id_highest_CS_node = node.id
+        return max, id_highest_CS_node
+
