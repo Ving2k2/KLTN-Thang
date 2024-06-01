@@ -99,7 +99,6 @@ def plot_circlesv3(network):
     name_fig = "./fig/{}.png".format("charging_pos")
     plt.savefig(name_fig)
     return charging_pos
-    # return
 
 networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n150.yaml")
 env, net = networkIO.makeNetwork()

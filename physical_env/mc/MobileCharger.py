@@ -103,29 +103,6 @@ class MobileCharger:
             else:
                 return x_hat, y_hat
 
-    # def charge(self, chargingTime):
-    #     tmp = chargingTime
-    #     self.chargingTime = tmp
-    #     self.connected_nodes = []
-    #     for node in self.net.listNodes:
-    #         if euclidean(node.location, self.location) <= self.chargingRange:
-    #             self.connected_nodes.append(node)
-    #     while True:
-    #         if tmp == 0:
-    #             break
-    #         if self.status == 0:
-    #             self.cur_phy_action[2] = 0
-    #             yield self.env.timeout(tmp)
-    #             break
-    #         span = min(tmp, 1.0)
-    #         if self.chargingRate != 0:
-    #             span = min(span, (self.energy - self.threshold) / self.chargingRate)
-    #         yield self.env.process(self.charge_step(t=span))
-    #         tmp -= span
-    #         self.chargingTime = tmp
-    #         self.checkStatus()
-    #     return
-
     def move_step(self, vector, t):
         yield self.env.timeout(t)
         self.location = self.location + vector
@@ -173,189 +150,6 @@ class MobileCharger:
         self.next_phy_action = [result[2][0], result[2][1], result[3]]
         return result[0]
 
-    # def operate_step_v4(self, phy_action):
-    #     # if phy_action[2] != 0:
-    #     #     print("MC #", self.id, "sent to", phy_action[0], phy_action[1], "and charge in", phy_action[2])
-    #     destination = np.array([phy_action[0], phy_action[1]])
-    #     chargingTime = phy_action[2]
-    #
-    #     usedEnergy = euclidean(destination, self.location) * self.pm
-    #     tmp = 0
-    #     for node in self.net.listNodes:
-    #         dis = euclidean(destination, node.location)
-    #         if dis <= self.chargingRange and node.status == 1:
-    #             tmp += self.alpha / (dis + self.beta) ** 2
-    #     usedEnergy += tmp * chargingTime
-    #     usedEnergy += euclidean(destination, self.net.baseStation.location) * self.pm
-    #
-    #     if (not self.is_active) and usedEnergy > self.energy - self.threshold - self.capacity / 200.0:
-    #         self.is_active = True
-    #         self.cur_phy_action = phy_action
-    #         self.cur_action_type = "moving"
-    #         yield self.env.process(self.move(destination=self.net.baseStation.location))
-    #         yield self.env.process(self.recharge())
-    #         yield self.env.process(self.move(destination=destination))
-    #         self.cur_action_type = "charging"
-    #         yield self.env.process(self.charge(chargingTime=chargingTime))
-    #         self.cur_action_type = "deactive"
-    #         self.is_active = False
-    #         return
-    #     if not self.is_active and (destination[0] != 500 and destination[1] != 500):
-    #         self.is_active = True
-    #         self.cur_phy_action = phy_action
-    #         self.cur_action_type = "moving"
-    #         yield self.env.process(self.move(destination=destination))
-    #         self.cur_action_type = "charging"
-    #         yield self.env.process(self.charge(chargingTime=chargingTime))
-    #         self.cur_action_type = "deactive"
-    #         self.is_active = False
-    #         return
-    #
-    # def operate_step_v3(self, net, time_stem, optimizer):
-    #     if ((not self.is_active) and self.cur_action_type == "deactive") or abs(time_stem - self.end_time) < 1:
-    #         if optimizer.list_request:
-    #             self.cur_action_type = "moving"
-    #             new_list_request = []
-    #             for request in optimizer.list_request:
-    #                 if net.listNodes[request["id"]].energy <= net.listNodes[request["id"]].threshold:
-    #                     new_list_request.append(request)
-    #                 else:
-    #                     net.listNodes[request["id"]].is_request = False
-    #             optimizer.list_request = new_list_request
-    #             if not optimizer.list_request:
-    #                 self.status = 0
-    #             self.get_next_location(network=net, time_stem=time_stem, optimizer=optimizer)
-    #             print(optimizer.q_table)
-    #     else:
-    #         if not self.cur_action_type == "deactive":
-    #             if self.cur_action_type == "moving":
-    #                 # print("moving")
-    #                 destination = (self.cur_phy_action[0], self.cur_phy_action[1])
-    #                 yield self.env.process(self.move(destination=destination))
-    #             elif self.cur_action_type == "charging":
-    #                 # print("charging")
-    #                 # self.charge(net)
-    #                 yield self.env.process(self.charge(chargingTime=self.cur_phy_action[2]))
-    #             elif self.cur_action_type == "recharging":
-    #                 # print("self charging")
-    #                 # self.recharge()
-    #                 yield self.env.process(self.recharge())
-    #
-    #     if self.energy < self.threshold and not self.is_self_charge and self.end != net.baseStation:
-    #         # self.start = self.current
-    #         self.end = net.baseStation
-    #         # self.is_stand = False
-    #         # charging_time = self.capacity / self.e_self_charge
-    #         moving_time = distance.euclidean(self.location, self.end) / self.velocity
-    #         self.end_time = time_stem + moving_time
-    #     # self.check_cur_action()
-
-    # def operate_step(self, net, time_stem, optimizer):
-    #     self.get_next_location(network=net, time_stem=time_stem, optimizer=optimizer)
-    #     destination = np.array([self.cur_phy_action[0], self.cur_phy_action[1]])
-    #     # destination = np.array([next_location[0], next_location[1]])
-    #     charging_time = self.cur_phy_action[2]
-    #     # if (charging_time != 0.0):
-    #     #     print("MC " + str(self.id), "destination", destination, "charging_time", charging_time)
-    #     if distance.euclidean(destination, net.baseStation.location) < 0.01:
-    #         self.cur_action_type = "moving"
-    #         yield self.env.process(self.move(destination=self.net.baseStation.location))
-    #         yield self.env.process(self.recharge())
-    #         self.recharge()
-    #
-    #     usedEnergy = euclidean(destination, self.location) * self.pm
-    #     tmp = 0
-    #     for node in self.net.listNodes:
-    #         dis = euclidean(destination, node.location)
-    #         if dis <= self.chargingRange and node.status == 1:
-    #             tmp += self.alpha / (dis + self.beta) ** 2
-    #     usedEnergy += tmp * charging_time
-    #     usedEnergy += euclidean(destination, self.net.baseStation.location) * self.pm
-    #
-    #     if usedEnergy > self.energy - self.threshold - self.capacity / 200.0:
-    #         # self.cur_phy_action = phy_action
-    #         self.cur_action_type = "moving"
-    #         yield self.env.process(self.move(destination=self.net.baseStation.location))
-    #         yield self.env.process(self.recharge())
-    #         yield self.env.process(self.move(destination=destination))
-    #         self.cur_action_type = "charging"
-    #         self.end_time = charging_time
-    #         yield self.env.process(self.charge(chargingTime=charging_time))
-    #         return
-    #     # self.cur_phy_action = phy_action
-    #     if charging_time != 0.0:
-    #         self.cur_action_type = "moving"
-    #         # self.end_time = self.move_time(self, destination=destination)
-    #         yield self.env.process(self.move(destination=destination))
-    #         self.cur_action_type = "charging"
-    #         self.end_time = charging_time
-    #         yield self.env.process(self.charge(chargingTime=charging_time))
-    #     self.check_cur_action()
-
-    # def operate_stepv2(self, phy_action, optimizer, time_stem, net):
-    #     self.state = len(net.listNodes) - 1
-    #     if self.cur_phy_action:
-    #         destination = np.array([self.cur_phy_action[0], self.cur_phy_action[1]])
-    #         charging_time = self.cur_phy_action[2]
-    #     else:
-    #         destination = net.baseStation.location
-    #         charging_time = 0
-    #     usedEnergy = euclidean(destination, self.location) * self.pm
-    #     tmp = 0
-    #     for node in self.net.listNodes:
-    #         dis = euclidean(destination, node.location)
-    #         if dis <= self.chargingRange and node.status == 1:
-    #             tmp += self.alpha / (dis + self.beta) ** 2
-    #     usedEnergy += tmp * charging_time
-    #     usedEnergy += euclidean(destination, self.net.baseStation.location) * self.pm
-    #
-    #     if ((not self.status) and optimizer.list_request) or abs(time_stem - self.end_time) < 1:
-    #         self.status = 1
-    #         new_list_request = []
-    #         for request in optimizer.list_request:
-    #             if net.listNodes[request["id"]].energy < net.node[request["id"]].threshold:
-    #                 new_list_request.append(request)
-    #             else:
-    #                 net.listNodes[request["id"]].is_request = False
-    #         optimizer.list_request = new_list_request
-    #         if not optimizer.list_request:
-    #             self.status = 0
-    #         self.get_next_location(network=net, time_stem=time_stem, optimizer=optimizer)
-    #     else:
-    #         if self.status:
-    #             if self.cur_action_type == "moving":
-    #                 # print("moving")
-    #                 yield self.env.process(self.move(destination=destination))
-    #             elif self.cur_action_type == "charging":
-    #                 # print("charging")
-    #                 # self.charge(net)
-    #                 yield self.env.process(self.charge(chargingTime=charging_time))
-    #             elif self.cur_action_type == "recharging":
-    #                 # print("self charging")
-    #                 # self.recharge()
-    #                 yield self.env.process(self.recharge())
-    #             else:
-    #                 self.get_next_location(network=net, time_stem=time_stem, optimizer=optimizer)
-    #
-    #     if (usedEnergy > self.energy - self.threshold - self.capacity / 200.0
-    #             and not self.is_self_charge and self.end != net.baseStation.location):
-    #         self.cur_phy_action = phy_action
-    #         self.cur_action_type = "moving"
-    #         self.end = net.baseStation.location
-    #         moving_time = distance.euclidean(self.location, net.baseStation.location) / self.velocity
-    #         yield self.env.process(self.move(destination=self.net.baseStation.location))
-    #         yield self.env.process(self.recharge())
-    #         yield self.env.process(self.move(destination=destination))
-    #         self.cur_action_type = "charging"
-    #         self.end_time = charging_time
-    #         yield self.env.process(self.charge(chargingTime=charging_time))
-    #         # charging_time = self.capacity / self.e_self_charge
-    #         self.end_time = time_stem + moving_time
-    #         return
-    #         # self.start = self.current
-    #         # self.is_stand = False
-    #     self.checkStatus()
-
     def check_cur_action(self):
         if not self.cur_action_type == 'moving':
             self.cur_action_type = 'charging'
@@ -384,14 +178,6 @@ class MobileCharger:
 
     def get_next_location(self, network, time_stem, optimizer=None):
         next_location, charging_time = optimizer.update(self, network, time_stem)
-        # self.next_location = next_location
-        # same_destination = False
-        # for other_mc in self.net.mc_list:
-        #     if other_mc.id != self.id and distance.euclidean(self.next_location, other_mc.next_location) > 1:
-        #         same_destination = True
-        #         break
-
-        # if not same_destination:
         self.start = self.current
         # self.cur_phy_action = [next_location[0], next_location[1], charging_time]
         self.end = next_location
@@ -400,48 +186,9 @@ class MobileCharger:
         print("[Moblie Charger] MC #{} end_time {}".format(self.id, self.end_time))
         self.chargingTime = charging_time
         self.arrival_time = time_stem + self.moving_time
-        # print("[Mobile Charger] MC #{} moves to {} in {}s and charges for {}s".format(self.id, self.end, self.moving_time, charging_time))
-        # with open(network.mc_log_file, "a") as mc_log_file:
-        #     writer = csv.DictWriter(mc_log_file, fieldnames=['time_stamp', 'id', 'starting_point', 'destination_point', 'decision_id', 'charging_time', 'moving_time'])
-        #     mc_info = {
-        #         'time_stamp' : time_stem,
-        #         'id' : self.id,
-        #         'starting_point' : self.start,
-        #         'destination_point' : self.end,
-        #         'decision_id' : self.state,
-        #         'charging_time' : charging_time,
-        #         'moving_time' : self.moving_time
-        #     }
-        #     writer.writerow(mc_info)
 
     def get_next_locationv2(self, network, time_stem, optimizer=None):
         next_location, charging_time = optimizer.update_double_Q(self, network, time_stem)
-        # self.next_location = next_location
-        # same_destination = False
-        # for other_mc in self.net.mc_list:
-        #     if other_mc.id != self.id and distance.euclidean(self.next_location, other_mc.next_location) > 1:
-        #         same_destination = True
-        #         break
-
-        # if not same_destination:
-
-        # if self.end[0] == 500 and self.end[1] == 500:
-        #     is_start_location = False
-        #     if ((self.net.mc_list[0].end[0] == 500 or self.net.mc_list[0].end[0] == 500) and
-        #             (self.net.mc_list[1].end[0] == 500 or self.net.mc_list[0].end[1] == 500) and
-        #             (self.net.mc_list[2].end[0] == 500 or self.net.mc_list[0].end[2] == 500)):
-        #         is_start_location = True
-        #     if is_start_location:
-        #         self.start = self.current
-        #         # self.cur_phy_action = [next_location[0], next_location[1], charging_time]
-        #         self.end = next_location
-        #         self.moving_time = distance.euclidean(self.location, self.end) / self.velocity
-        #         self.end_time = time_stem + self.moving_time + charging_time
-        #         print("[Moblie Charger] start MC #{} end_time {}".format(self.id, self.end_time))
-        #         self.chargingTime = charging_time
-        #         self.arrival_time = time_stem + self.moving_time
-        #         # self.net.delete_request(id_cluster=self.state, optimizer=optimizer)
-        # else:
         is_same_destination = False
         for other_mc in self.net.mc_list:
             if other_mc.id != self.id and euclidean(other_mc.end, next_location) < 0.1:
@@ -457,40 +204,18 @@ class MobileCharger:
             if self.chargingTime != 0:
                 print("[Moblie Charger] MC #{} charge in {}".format(self.id, self.chargingTime))
             self.arrival_time = time_stem + self.moving_time
-                # self.net.delete_request(id_cluster=self.state, optimizer=optimizer)
-
-        # print("[Mobile Charger] MC #{} moves to {} in {}s and charges for {}s".format(self.id, self.end, self.moving_time, charging_time))
-        # with open(network.mc_log_file, "a") as mc_log_file:
-        #     writer = csv.DictWriter(mc_log_file, fieldnames=['time_stamp', 'id', 'starting_point', 'destination_point', 'decision_id', 'charging_time', 'moving_time'])
-        #     mc_info = {
-        #         'time_stamp' : time_stem,
-        #         'id' : self.id,
-        #         'starting_point' : self.start,
-        #         'destination_point' : self.end,
-        #         'decision_id' : self.state,
-        #         'charging_time' : charging_time,
-        #         'moving_time' : self.moving_time
-        #     }
-        #     writer.writerow(mc_info)
 
     def runv2(self, network, time_stem, net=None, optimizer=None):
-        # print(self.energy, self.start, self.end, self.current)
-        # if ((((not self.is_active) or (self.is_stand and not self.is_self_charge))
-        #      and optimizer.list_request)
-        #         or abs(time_stem - self.end_time) < 1):
-        if ((not self.is_active) and optimizer.list_request) or (np.abs(time_stem - self.end_time) < 1):
-            # temp1 = ((not self.is_active) and len(optimizer.list_request)>0)
-            # temp2 = (np.abs(time_stem - self.end_time) < 1)
-            # temp3 = (temp1 or temp2)
+        if ((not self.is_active) and optimizer.list_request) or (np.abs(time_stem - self.end_time) < 10):
             self.is_active = True
             new_list_request = []
             for request in optimizer.list_request:
                 if net.listNodes[request["id"]].energy < self.net.listNodes[0].warning:
-                    new_list_request.append( {"id": net.listNodes[request["id"]].id,
-                                              "energy": net.listNodes[request["id"]].energy,
-                                              "energyCS": net.listNodes[request["id"]].energyCS,
-                                              "energyRR": net.listNodes[request["id"]].energyRR,
-                                              "time": 1})
+                    new_list_request.append({"id": net.listNodes[request["id"]].id,
+                                             "energy": net.listNodes[request["id"]].energy,
+                                             "energyCS": net.listNodes[request["id"]].energyCS,
+                                             "energyRR": net.listNodes[request["id"]].energyRR,
+                                             "time": 1})
                 else:
                     net.listNodes[request["id"]].is_request = False
             optimizer.list_request = new_list_request
@@ -498,11 +223,11 @@ class MobileCharger:
                 self.is_active = False
             current_location = [self.end[0], self.end[1]]
             self.get_next_locationv2(network=network, time_stem=time_stem, optimizer=optimizer)
-            if euclidean(current_location, self.end) < 0.1:
+            base_loc = [500, 500]
+            if euclidean(current_location, base_loc) < 0.1:
                 self.is_active = False
                 if len(optimizer.list_request) >= 3:
                     self.charge_lowest_e_sensor(self, net = net, time_stem=time_stem, optimizer=optimizer)
-            base_loc = [500, 500]
 
         else:
             if self.is_active:
@@ -546,10 +271,9 @@ class MobileCharger:
             if net.listNodes[request["id"]].energy > min:
                 min = net.listNodes[request["id"]].energy
                 id_lowest_e_sensor = request["id"]
-                # print("request here", request["id"])
 
         next_location = net.listNodes[id_lowest_e_sensor].location
-        charging_time = 200
+        charging_time = 100
         self.start = self.current
         # self.cur_phy_action = [next_location[0], next_location[1], charging_time]
         self.end = next_location

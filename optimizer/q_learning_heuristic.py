@@ -3,7 +3,7 @@ import random
 import numpy as np
 from scipy.spatial import distance
 
-from optimizer.utils import init_function, q_max_function, reward_function, network_clustering_v2
+from optimizer.utils import init_function, q_max_function, reward_function
 from physical_env.network import Node
 
 
@@ -68,7 +68,7 @@ class Q_learningv2:
             # self.choose_next_state_double_Q(mc, network, self.q_table_A)
         if mc.state == len(self.action_list) - 1:
             charging_time = 0
-            print("chon trung tram co so - node cuoi")
+            # print("chon trung tram co so - node cuoi")
         else:
             print("mc.state now MC #", mc.id, " ", mc.state)
             charging_time = self.charging_time[mc.state]
@@ -87,9 +87,6 @@ class Q_learningv2:
         self.set_reward(mc=mc, time_stem=time_stem, network=network)
         self.q_table[mc.state] = (1 - self.q_alpha) * self.q_table[mc.state] + self.q_alpha * (
                 self.reward + self.q_gamma * self.q_max(mc, q_max_func))
-        # print(self.q_table)
-        # print("reward of state 16, node 57", self.q_table[mc.state][16])
-        # print("reward of state 21 node 6", self.q_table[mc.state][21])
         print("state have max reward is: ", self.q_table[mc.state][np.argmax(self.q_table[mc.state])], "in state ", np.argmax(self.q_table[mc.state]))
         self.choose_next_state(mc, network)
         if mc.state == len(self.action_list) - 1:
@@ -153,14 +150,7 @@ class Q_learningv2:
                 mc.state = random.randrange(len(self.q_table) - 2)
 
     def choose_next_state_v2(self, mc, network):
-        # if random.random() < mc.e:
-        #     mc.state = self.q_table[mc.state][random.randint(0, len(self.q_table)-1)]
-        # else:
         mc.state = np.nanargmax(self.q_table[mc.state])
-        # if mc.e > 0:
-        #     mc.e -= 0.01
-        # else:
-        #     mc.e = 0.00000000001
 
     # def net_partition(self, net=None, net_clustering_func=network_clustering):
     #     # self.action_list = net_clustering_func(self, network=net, nb_cluster=self.nb_action)

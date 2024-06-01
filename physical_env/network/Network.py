@@ -91,26 +91,16 @@ class Network:
             if not self.network_cluster:
                 yield self.env.timeout(10)
                 self.network_cluster = network_clustering(network=self)
-                # print(len(self.network_cluster))
                 self.network_cluster_id_node = network_cluster_id_node(network=self)
                 optimizer.action_list = self.network_cluster
                 print(len(optimizer.action_list))
             yield self.env.timeout(9.0 * t / 10.0)
-            # optimizer.action_list = network_clustering(optimizer=optimizer, network=self, nb_cluster=83)
             for index, node in enumerate(self.listNodes):
-                # if node.energy <= node.threshold * 2:
                 if node.energy <= energy_warning:
                     node.request(optimizer=optimizer, t=t)
-                    # print(optimizer.list_request)
                     request_id.append(index)
                 else:
                     node.is_request = False
-            # arr_active_mc = []
-            # for mc in self.mc_list:
-            #     if mc.cur_action_type == "deactive":
-            #         arr_active_mc.append(0)
-            #     else:
-            #         arr_active_mc.append(1)
             if optimizer.list_request and self.alive:
                 if len(optimizer.list_request) <= 1:
                     self.mc_list[0].runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
@@ -119,121 +109,12 @@ class Network:
                     self.mc_list[1].runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
                 else:
                     for mc in self.mc_list:
-                        # for other_mc in self.mc_list:
-                        #     if (other_mc.id != mc.id and distance.euclidean())
-                        # if distance.euclidean(mc.end, )
                         mc.runv2(network=self, time_stem=self.env.now, net=self, optimizer=optimizer)
-                    # self.delete_request(id_cluster=mc.state, optimizer=optimizer)
-                    # if (self.env.now % 100 == 0):
-                    #     print(self.env.now, "time_stem")
-
-                # Phương án 4
-            #     if np.argmin(arr_active_mc) == 0:
-            #         for mc in self.mc_list:
-            #             if (not mc.is_active) and optimizer.list_request:
-            #                 # new_list_request = []
-            #                 # for request in optimizer.list_request:
-            #                 #     if self.listNodes[request["id"]].energy < energy_warning:
-            #                 #         new_list_request.append(
-            #                 #             {"id": self.listNodes[request["id"]].id,
-            #                 #              "energy": self.listNodes[request["id"]].energy,
-            #                 #              "energyCS": self.listNodes[request["id"]].energyCS,
-            #                 #              "energyRR": self.listNodes[request["id"]].energyRR, "time": t})
-            #                 #     else:
-            #                 #         self.listNodes[request["id"]].is_request = False
-            #                 # optimizer.list_request = new_list_request
-            #                 result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
-            #                 # print(mc.q_table[mc.state])
-            #                 is_same_destination = False
-            #                 for other_mc in self.mc_list:
-            #                     if other_mc.id != mc.id:
-            #                         choose_mc_next_destination = (mc.next_phy_action[0], mc.next_phy_action[1])
-            #                         other_mc_next_destination = (other_mc.next_phy_action[0], other_mc.next_phy_action[1])
-            #                         if distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
-            #                             is_same_destination = True
-            #                             break
-            #                 if not is_same_destination:
-            #                     phy_action = self.mc_list[mc.id].next_phy_action
-            #                     self.delete_request(id_cluster=mc.state, optimizer=optimizer)
-            #                     # s = "stop here"
-            #                     self.env.process(mc.operate_step_v4(phy_action=phy_action))
-            #
-            # # Phương án 1
-            #     if (len_list_request_before != len_list_request_after and np.argmin(arr_active_mc) == 0) or (len_list_request_before == len_list_request_after and np.argmin(arr_active_mc != 0)):
-            #         len_list_request_after = len(optimizer.list_request)
-            #         arr_q_max = []
-            #         for id, mc in enumerate(self.mc_list):
-            #             # temp = self.min_node()
-            #             # mc.state = self.check_cluster(id_node=temp)
-            #             result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
-            #             if mc.is_active:
-            #                 arr_q_max.append(0)
-            #             else:
-            #                 arr_q_max.append(result)
-            #
-            #         choose_mc = np.argmax(arr_q_max)
-            #         is_same_destination = False
-            #         for other_mc in self.mc_list:
-            #             choose_mc_next_destination = (self.mc_list[choose_mc].next_phy_action[0], self.mc_list[choose_mc].next_phy_action[1])
-            #             other_mc_next_destination = (other_mc.cur_phy_action[0], other_mc.cur_phy_action[1])
-            #             if other_mc.id != choose_mc and distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
-            #                 is_same_destination = True
-            #         if not is_same_destination:
-            #             phy_action = self.mc_list[choose_mc].next_phy_action
-            #             self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
-            # Phương án 2
-            #     if np.argmin(arr_active_mc) == 0:
-            #         # b = len(optimizer.list_request)
-            #         # if b != a:
-            #             arr_q_max = []
-            #             for id, mc in enumerate(self.mc_list):
-            #                 if first_step == 0:
-            #                     temp = (optimizer.list_request[0])["id"]
-            #                     mc.state = self.check_cluster(id_node=(optimizer.list_request[0])["id"])
-            #                 result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
-            #                 if mc.is_active:
-            #                     arr_q_max.append(0)
-            #                 else:
-            #                     arr_q_max.append(result)
-            #
-            #             first_step = 10
-            #             if arr_q_max[np.argmax(arr_q_max)] != 0:
-            #                 choose_mc = np.argmax(arr_q_max)
-            #                 phy_action = self.mc_list[choose_mc].next_phy_action
-            #                 self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
-            #                 a = b
-            # Phuowng an 3
-            # arr_q_max = []
-            # for id, mc in enumerate(self.mc_list):
-            #     result = mc.update_q_table(net=self, optimizer=optimizer, time_stem=t)
-            #     if mc.is_active:
-            #         arr_q_max.append(0)
-            #     else:
-            #         arr_q_max.append(result)
-            #
-            # choose_mc = np.argmax(arr_q_max)
-            # is_same_destination = False
-            # for other_mc in self.mc_list:
-            #     choose_mc_next_destination = (self.mc_list[choose_mc].next_phy_action[0], self.mc_list[choose_mc].next_phy_action[1])
-            #     other_mc_next_destination = (other_mc.cur_phy_action[0], other_mc.cur_phy_action[1])
-            #     if other_mc.id != choose_mc and distance.euclidean(choose_mc_next_destination, other_mc_next_destination) < 1:
-            #         is_same_destination = True
-            # if not is_same_destination:
-            #     phy_action = self.mc_list[choose_mc].next_phy_action
-            #     self.env.process(self.mc_list[choose_mc].operate_step_v4(phy_action=phy_action))
-            # self.env.timeout(50)
-
-            # if self.alive == 0 or self.env.now >= self.max_time:
             if self.alive == 0:
                 break
         return
 
     def delete_request(self, id_cluster, optimizer):
-        # for request in optimizer.list_request:
-        #     for id_node in self.network_cluster_id_node[id_cluster]:
-        #         if id_node == request['id']:
-        #             optimizer.list_request.remove({'id': id_node})
-        #             return
         for i, item in enumerate(optimizer.list_request):
             for id_node in self.network_cluster_id_node[id_cluster]:
                 if item['id'] == id_node:

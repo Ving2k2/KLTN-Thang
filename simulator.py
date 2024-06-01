@@ -22,10 +22,10 @@ def log(net, mcs, q_learning):
     while True:
         yield net.env.timeout(100)
         # plot_network(net)
-        print(net.listNodes[26])
+        # print(net.listNodes[26])
         print_state_net(net, mcs)
         print(q_learning.list_request)
-        print("e_RR", net.listNodes[57].energyRR)
+        # print("e_RR", net.listNodes[57].energyRR)
         # for id, point in enumerate(net.network_cluster):
         #     print(id, point)
         # arr = []
@@ -68,117 +68,6 @@ def print_state_net(net, mcs):
             print("\t\tMC #{} energy:{} is {} at {} state:{}".format(mc.id, mc.energy, mc.get_status(), mc.current,
                                                                      mc.state))
 
-
-def plot_network(net):
-    G = nx.Graph()
-    G.add_node("base_station", pos=tuple(net.baseStation.location))
-    for node in net.network_cluster:
-        G.add_node(tuple(node))
-    # Thêm các đường thẳng từ base_station đến các node theo thứ tự mảng
-    for i in range(len(net.network_cluster)):
-        # Vẽ đường thẳng từ node trước đến node hiện tại
-        if i == 0:
-            # Bắt đầu từ base_station
-            start_node = "base_station"
-        else:
-            # Bắt đầu từ node trước
-            start_node = tuple(net.network_cluster[i - 1])
-        end_node = tuple(net.network_cluster[i])
-        G.add_edge(start_node, end_node)
-
-    # Đặt màu cho các node
-    node_colors = ["red" for _ in range(len(net.network_cluster))]
-
-    # Tùy chỉnh các thuộc tính vẽ
-    nx.draw(G, node_color='red', edge_color='blue', with_labels=False)
-    # Vẽ các node
-    # nx.draw_nodes(G, net.network_cluster, node_color=node_colors, with_labels=True)
-    #
-    # # Vẽ các đường thẳng
-    # nx.draw_edges(G, with_labels=True)
-
-    # Hiển thị đồ thị
-    plt.show()
-
-
-def draw_sensor_icon(ax, x, y, icon_path, icon_size):
-    """
-    Vẽ biểu tượng cảm biến tại tọa độ (x, y).
-
-    Parameters:
-        ax (matplotlib.axes.Axes): Đối tượng trục của đồ thị.
-        x (float): Tọa độ x của trung tâm.
-        y (float): Tọa độ y của trung tâm.
-        icon_path (str): Đường dẫn đến hình ảnh biểu tượng cảm biến.
-        icon_size (float): Kích thước của biểu tượng.
-
-    Returns:
-        None
-    """
-    icon = plt.imread(icon_path)
-    ax.imshow(icon, extent=[x - icon_size / 2, x + icon_size / 2, y - icon_size / 2, y + icon_size / 2])
-
-
-def plot_circles(nodes, arr_name_nodes, radiuses, base_station_icon_path):
-    """
-    Vẽ các hình tròn và các điểm giao nhau trên đồ thị.
-
-    Parameters:
-        nodes (list): Tập hợp các điểm trung tâm hình tròn.
-        arr_ten_nodes (list): Tập hợp các tên hình tròn.
-        radiuses (list of floats): Bán kính của từng hình tròn.
-        base_station_icon_path (str): Đường dẫn đến hình ảnh biểu tượng trạm cơ sở.
-
-    Returns:
-        list: Tập hợp các điểm giao nhau.
-    """
-    all_intersections = []
-    for centers in arr_name_nodes:
-        circles = []
-        for i in centers:
-            circle = Point(nodes[i]).buffer(radiuses[i])
-            circles.append(circle)
-            draw_sensor_icon(plt.gca(), nodes[i][0], nodes[i][1], 'images/sensor.png', 20)
-
-        # Vẽ biểu tượng trạm cơ sở
-        base_station_x, base_station_y = base_station
-        draw_sensor_icon(plt.gca(), base_station_x, base_station_y, base_station_icon_path, 60)
-
-        # for circle in circles:
-        #     plt.plot(circle.exterior.xy[0], circle.exterior.xy[1], color='b', linewidth=0.5)
-
-        intersections = circles[0]
-        for circle in circles[1:]:
-            intersections = intersections.intersection(circle)
-
-        if isinstance(intersections, Polygon) and not intersections.is_empty:
-            centroid = intersections.centroid
-            plt.plot(centroid.x, centroid.y, marker='o', color='r', markersize=3)
-        else:
-            plt.fill(circles[0].exterior.xy[0], circles[0].exterior.xy[1], color='orange', alpha=0.3)
-            plt.plot(nodes[centers[0]][0], nodes[centers[0]][1], marker='o', color='r', markersize=3)
-        all_intersections.append(intersections)
-    return all_intersections
-
-
-def draw_battery(ax, x, y, width, height, charge_percentage):
-    ax.add_patch(Rectangle((x, y), width, height, edgecolor='black', facecolor='none'))
-    charge_height = height * charge_percentage / 100
-
-    if charge_percentage <= 20:
-        color = 'red'
-    elif charge_percentage > 20 and charge_percentage <= 75:
-        color = 'yellow'
-    else:
-        color = 'lime'
-
-    ax.add_patch(Rectangle((x, y), width, charge_height, edgecolor='none', facecolor=color))
-
-    bolt_x = x + width / 2
-    bolt_y = y + charge_height / 2
-    ax.text(bolt_x, bolt_y, '⚡', fontsize=20, color='blue', va='center', ha='center')
-
-
 networkIO = NetworkIO("./physical_env/network/network_scenarios/hanoi1000n50.yaml")
 env, net = networkIO.makeNetwork()
 
@@ -196,7 +85,7 @@ q_learning = Q_learningv2(net=net, nb_action=37, alpha=0.1, q_gamma=0.1)
 
 # Node:   50    100     150     200
 # Center: 37    57      70      75
-# Time:   21.9  5.5
+# Time:   20.8  7.5     5.4     2.9
 print("start program")
 net.mc_list = mcs
 x = env.process(net.operate(optimizer=q_learning))

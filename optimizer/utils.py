@@ -21,12 +21,6 @@ from physical_env.network.utils import find_receiver
 from physical_env.network import Node
 
 def q_max_function(q_table, state):
-    # temp = []
-    # for index, row in enumerate(q_table):
-    #     if (index != state):
-    #         temp.append(max(row))
-    #     else:
-    #         temp.append(-float(int))
     temp = [max(row) if index != state else -float("inf") for index, row in enumerate(q_table)]
     # temp = [max(row) if index != state else 0 for index, row in enumerate(q_table)]
     return np.asarray(temp)
@@ -112,7 +106,7 @@ def get_charging_time(network=None, mc=None, q_learning=None, time_stem=0, state
     time_move = distance.euclidean(mc.location, q_learning.action_list[state]) / mc.velocity
     # energy_min = network.listNodes[0].threshold + alpha * network.listNodes[0].capacity
     # energy_min = 6500
-    energy_min = network.listNodes[0].warning + 1000
+    energy_min = network.listNodes[0].capacity * alpha + 1000
     s1 = []  # list of node in request list which has positive charge
     s2 = []  # list of node not in request list which has negative charge
     for node in network.listNodes:
